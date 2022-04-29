@@ -6,7 +6,7 @@ import typing
 import aiohttp
 import bs4
 
-host = "http://265ep45199.wicp.vip"
+host = "https://example.com"
 cookie = {}
 
 
@@ -96,8 +96,14 @@ async def get_submission_content(session: aiohttp.ClientSession, url: str) -> st
 async def get_code_html(session: aiohttp.ClientSession, url: str) -> str:
     content = await get_submission_content(session, url)
     start = content.find('const unformattedCode = "') + len('const unformattedCode = "')
-    end = content.find("\";", start, content.find('const formattedCode = "', start))
-    return content[start:end].encode("utf-8").decode("unicode-escape")
+    end = content.find('";', start, content.find('const formattedCode = "', start))
+    return re.sub(
+        r"(\\u[0-9a-fA-F])",
+        lambda match: match.group(1).encode("utf-8").decode("unicode-escape"),
+        content[start:end],
+        0,
+        re.M,
+    )
 
 
 async def get_code(session: aiohttp.ClientSession, url: str) -> str:
